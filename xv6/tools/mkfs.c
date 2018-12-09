@@ -64,7 +64,7 @@ xint(uint x)
 }
 
 
-int 
+int
 mkfs(int nblocks, int ninodes, int size) {
 
   int i;
@@ -109,7 +109,7 @@ add_dir(DIR *cur_dir, int cur_inode, int parent_inode) {
 	int off;
 
     // This is where "." & ".." are created in root directory
-	bzero(&de, sizeof(de));
+	bzero(&de, sizeof(de)); //makes 0
 	de.inum = xshort(cur_inode);
 	strcpy(de.name, ".");
 	iappend(cur_inode, &de, sizeof(de));
@@ -123,18 +123,18 @@ add_dir(DIR *cur_dir, int cur_inode, int parent_inode) {
 		return 0;
 	}
 
-	cur_fd = dirfd(cur_dir);
-	if (cur_fd == -1){
+	cur_fd = dirfd(cur_dir); //returns fd
+	if (cur_fd == -1){     //if fd = -1 aka doesn't exist
 		perror("add_dir");
 		exit(EXIT_FAILURE);
 	}
 
-	if (fchdir(cur_fd) != 0){
-		perror("add_dir");
+	if (fchdir(cur_fd) != 0){ //tries to change working directory to cur_fd
+		perror("add_dir"); //if fails, return -1
 		return -1;
 	}
 
-	while (true) {
+	while (true) {     //copying things in directory
 		r = readdir_r(cur_dir, &dir_buf, &entry);
 
 		if (r != 0) {
@@ -145,32 +145,33 @@ add_dir(DIR *cur_dir, int cur_inode, int parent_inode) {
 		if (entry == NULL)
 			break;
 
+        // continue if directory . or ..
 		if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
 			continue;
 
 		printf("%s\n", entry->d_name);
 
 		child_fd = open(entry->d_name, O_RDONLY);
-		if (child_fd == -1) {
+		if (child_fd == -1) {     //open failed
 			perror("open");
 			return -1;
 		}
 
-		r = fstat(child_fd, &st);
+		r = fstat(child_fd, &st); //gets stats on child_fd into st
 		if (r != 0) {
-			perror("stat");
+			perror("stat");  //if failed
 			return -1;
 		}
 
-		if (S_ISDIR(st.st_mode)) {
-      child_inode = ialloc(T_DIR);
+		if (S_ISDIR(st.st_mode)) { //if protected
+            child_inode = ialloc(T_DIR);
 			r = add_dir(fdopendir(child_fd), child_inode, cur_inode);
-			if (r != 0) return r;
-			if (fchdir(cur_fd) != 0) {
+			if (r != 0) return r;    //if add_dir failed
+			if (fchdir(cur_fd) != 0) {       //if can't change to dir
 				perror("chdir");
 				return -1;
 			}
-		} else {
+		} else {      //else read
 			bytes_read = 0;
 	  		child_inode = ialloc(T_FILE);
 			bzero(&de, sizeof(de));
@@ -212,13 +213,13 @@ main(int argc, char *argv[])
   assert((512 % sizeof(struct dinode)) == 0);
   assert((512 % sizeof(struct xv6_dirent)) == 0);
 
-  fsfd = open(argv[1], O_RDWR|O_CREAT|O_TRUNC, 0666);
-  if(fsfd < 0){
+  fsfd = open(argv[1], O_RDWR|O_CREAT|O_TRUNC, 0666);   //open fs.img
+  if(fsfd < 0){         //aka failed
     perror(argv[1]);
     exit(1);
   }
 
-  mkfs(995, 200, 1024);
+  mkfs(995, 200, 1024); //sets up file system
 
   root_dir = opendir(argv[2]);
 
@@ -226,7 +227,7 @@ main(int argc, char *argv[])
   assert(root_inode == ROOTINO);
 
   r = add_dir(root_dir, root_inode, root_inode);
-  if (r != 0) {
+  if (r != 0) {             //if not successful
     exit(EXIT_FAILURE);
   }
 

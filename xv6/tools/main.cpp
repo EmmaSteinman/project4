@@ -22,9 +22,16 @@ using namespace std;
 void inodeType(char* fs, uint ninodes){
     struct dinode * inode;
     short type;
-    for (int i = 0; i < ninodes; i++)
+    for (int i = 1; i < ninodes; i++)
     {
-        inode = (struct dinode *)(fs+(BSIZE*2)+(sizeof(dinode)*i));
+        inode = (struct dinode *)(fs+(BSIZE*2)+(sizeof(struct dinode)*i));
+        cout << "inode "<< inode << endl;
+        cout << "inode number " << i << endl;
+        cout << "inode type " << inode->type << endl;
+        cout << "inode # links " << inode->nlink << endl;
+        cout << "inode address " << inode->addrs << endl;
+        cout << "inode address 1 " << inode->addrs[0]  << endl;
+        cout << "=============================" << endl;
         type = inode->type;
         //cout << "here" << inode->type <<endl;
         if (type != T_DIR && type != T_FILE && type !=T_DEV && type != 0)
@@ -57,35 +64,42 @@ void inUseInode(char* fs, uint inodes)
     }
 }
 */
-void rootDir(char* fs, uint* dataStart){
+void rootDir(char* fs, struct superblock * sb){
     struct dinode * root;
-    char name;
+    char* name;
     uint addrs[DIRSIZ];
     int i=0;
     struct dirent * dir;
     root = (struct dinode *)(fs+BSIZE+BSIZE+sizeof(struct dinode));
-    cout << ";adkf " << root->addrs[0] << endl;
+    cout << ";adkf " << root<< endl;
+    uint start = root->addrs[0];
+    cout << "Start " << start << endl;/*
+    for (uint x = 0; x<sb->nblocks; x++)
+    {
+        dir = (struct dirent*)(fs+(start*BSIZE)+sizeof(struct dirent)*x);
+        name = dir->name;
+        cout << "block number " << start*BSIZE << endl;
+        cout << "block number+x " << (void*)(fs+start*BSIZE+sizeof(struct dirent)*x) << endl;
+        cout << "dirent " <<  dir<< endl;
+        cout << "dir name " << name << endl;
+        cout << "dir inum " << dir->inum << endl;
+        cout << "======================" << endl;
+    }*/
 
     if (root->type == T_DIR)
     {
         //addrs = root->addrs;
-        dir = (struct dirent *)(fs+root->addrs[i]*BSIZE);
-        cout << "here " << dataStart << endl;
-        cout << "nsdks;l " << strcmp(dir->name, "..") << endl;
+        dir = (struct dirent*)(fs+(start*BSIZE)+sizeof(struct dirent)*i);
         while (strcmp(dir->name, "..")!= 0 && i<=NDIRECT)
         {
-            cout << "name " << dir->name << endl;
             i++;
-
-            dir = (struct dirent *)(fs+root->addrs[i]*BSIZE);
+            dir = (struct dirent*)(fs+(start*BSIZE)+sizeof(struct dirent)*i);
         }
-        cout << ";akldj " << dir->name << endl;
         if (dir->inum != 1)
         {
             cerr << "ERROR: root directory does not exist" << endl;
             exit(1);
         }
-
     }
     else
     {
@@ -108,13 +122,12 @@ void selfAndParent(char* fs, uint ninodes)
     {
         inode = (struct dinode *)(fs+(BSIZE*2)+(sizeof(dinode)*i));
         type = inode->type;
-        cout << "here" << inode->type <<endl;
         if (type == T_DIR)
         {
             cout << "dir " << i << endl;
             j = 0;
             found = 0;
-            dir = (struct dirent *)(fs+inode->addrs[j]*BSIZE);
+            dir = (struct dirent *)(fs+inode->addrs[0]*BSIZE+sizeof(struct dirent)*j);
             cout << "fj " << dir->name << endl;
             while (j <= NDIRECT && found < 2)
             {
@@ -131,7 +144,7 @@ void selfAndParent(char* fs, uint ninodes)
                     found++;
                 }
                 j++;
-                dir = (struct dirent *)(fs+inode->addrs[j]*BSIZE);
+                dir = (struct dirent *)(fs+inode->addrs[0]*BSIZE+sizeof(struct dirent)*j);
             }
             if (found < 2)
             {
@@ -143,11 +156,29 @@ void selfAndParent(char* fs, uint ninodes)
     }
 
 }
-/*
+
+uint isAllocated(char* fs, int blocknum, uint ninodes)
+{
+    uint* bitmapArray;
+    uint bit,word,pos, shift;
+    bitmapArray = (uint *) (fs + (BBLOCK(0,ninodes)*BSIZE));
+    cout << "bitmaparray " << bitmapArray << endl;
+    word = (uint)(bitmapArray[(blocknum / 32)]); //gets word within BitMap
+    pos = blocknum % 32;
+    shift = 31 - pos;
+    word = word >>shift;
+    return (word & 0x1);
+}
+
 void inBitMap(char * fs, uint ninodes)
 {
     struct dinode * inode;
     short type;
+    uint * bitmapStart;
+    uint bitB = BBLOCK(0,ninodes);
+    cout << "bb " << bitB << endl;
+    bitmapStart = (uint *) fs+(bitB*BSIZE);
+    cout << "hi " << bitmapStart << endl;
     for (int i = 0; i < ninodes; i++)
     {
         inode = (struct dinode *)(fs+(BSIZE*2)+(sizeof(dinode)*i));
@@ -157,7 +188,7 @@ void inBitMap(char * fs, uint ninodes)
 
     }
 }
-*/
+
 int main (int argc,char *argv[])
 {
     struct superblock *sb;
@@ -168,7 +199,7 @@ int main (int argc,char *argv[])
 	struct stat st;
     size_t size;
     struct dinode * inodes;
-    uint * dataStart;
+    struct dirent * dataStart;
     uint numiNodeBlocks, numBitMapBlocks;
     cout << argv[0] << endl;
     cout << argv[1] << endl;
@@ -179,27 +210,26 @@ int main (int argc,char *argv[])
         return -1;//probably don't do this
     }
     r = fstat(fd, &st);
-    if (r!=0) cout << "bad" <<endl;
+    if (r!=0) cout << "bad" << endl;
     size = st.st_size;
     cout << "size " << size << endl;
-    fs = (char*) mmap(0,size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-    cout << "fs " <<fs<< endl;
+    fs = (char *) (mmap(0,size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0));
+    cout << "fs " <<(void*)fs<< endl;
     if (fs==MAP_FAILED)cout << "baddd "<<endl;
     sb = (struct superblock *)(fs + BSIZE);
     numiNodeBlocks = sb->ninodes /IPB;
     numBitMapBlocks = sb->size/BPB+1;
-    cout << "size " << numBitMapBlocks << endl;
+    cout << "size " << numiNodeBlocks << endl;
     cout << "inodes " << sb->size << endl;
     cout << "blocks " << sb->nblocks << endl;
-    inodes = (struct dinode *) (fs + (BSIZE*2));
-    dataStart = (uint *)fs+BSIZE+BSIZE + numiNodeBlocks*BSIZE+numBitMapBlocks*BSIZE;
     cout << "types " << T_DIR <<" "<<T_FILE <<" "<<T_DEV << endl;
-    cout << "size of " << inodes+2 << endl;
-    inodeType(fs, sb->ninodes);
+    //inodeType(fs, sb->ninodes);
     cout << "finished inode type" << endl;
-    rootDir(fs, dataStart);
+    //rootDir(fs, sb);
     cout << "finished rootdir" << endl;
-    //selfAndParent(fs,sb->ninodes);
+    //inBitMap(fs, sb->ninodes);
+    //cout << "done " << isAllocated(fs,31,sb->ninodes) << endl;
+    selfAndParent(fs,sb->ninodes);
     if (munmap(fs,size)==-1) cout << "error" << endl;
     closed = close(fd);
     return 0;

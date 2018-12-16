@@ -1,0 +1,94 @@
+Emma Steinman
+PREPARATION
+•Anticipate Questions
+oI anticipated some questions about undecidable languages and how to create DFAs and maybe more about NFAs. Since most of the class is math majors rather than CS majors, I figured people wouldn’t be very educated on the topic so they wouldn’t have very complex or difficult questions
+•Don’t Overestimate The Knowledge of Your Audience
+oI gave definitions and basic examples of DFAs and knew that since most of the class is math majors they would not have been exposed to DFAs or automata before so I made my talk pretty basic
+•Make Copies of Slides used more than once 
+oI only used slides for the title and basic definitions so I did not have to worry about this 
+•Avoid Technical Definitions
+oThe definitions of DFAs are not extremely complicated and I made sure to explain them in a way that would be easy to understand to anyone
+•Use Examples and Non Examples
+oI used examples of basic DFAs and gave examples of finite automata that would not be deterministic, and gave examples of how a DFA might change if the language changed
+•Segment Your Talk 
+oI made sure to have separate examples that I could include or leave out depending on the amount of time I had left
+•Don’t compute in public
+oI made sure to practice and figure out all of my examples beforehand so I wasn’t trying to make a DFA on the spot which can be time consuming
+
+DELIVERY
+•Face the Audience
+oI always face the audience, even if I write something on the board I make sure to turn back around or face sideways while writing
+•Avoid Annoying mannerisms
+oSometimes I tend to talk with my hands too much, so writing on the board or holding the marker can help control that, and practicing it so I am not as nervous also controls the movement a little
+•Don’t use a chalkboard
+oI used the board to illustrate my examples because power points are not as effective for DFAs 
+•Show Enthusiasm
+oThe diagonal slash proof is one of my favorite proofs and I am excited every time I use it so I knew that my talk wouldn’t be lacking energy. I also made sure to use simple examples so I was not focused on the hard problem and I could make sure people are engaged and not lost
+•Say it Loud and Clear
+oI usually talk loud enough and I try to be cognizant of the speed at which I am talking and that I enunciate properly
+
+VISUAL AIDS
+•Avoid Distracting Animations
+oI only used a power point for the title and basic definition of a DFA and did not include any animations
+•Incorporate props
+oI did not use any props because they would not be effective
+•Use appropriate backgrounds
+oI used solid color backgrounds and did not utilize the power point much 
+•Use keywords or phrases
+oI did not put very much information in my power point but I make sure not to put very much information
+•Manage the overhead projector
+oProjectors now do not require as much attention as overheads so I didn’t have to worry about that
+•Use color to enhance the slides
+oI did not have many slides
+•Use a large font size
+oI did not have much information so I made it large enough to fill the page
+
+
+
+Emma Steinman
+PREPARATION
+•Anticipate Questions
+oI anticipated some questions about undecidable languages and how to create DFAs and maybe more about NFAs. Since most of the class is math majors rather than CS majors, I figured people wouldn’t be very educated on the topic so they wouldn’t have very complex or difficult questions
+•Don’t Overestimate The Knowledge of Your Audience
+oI gave definitions and basic examples of DFAs and knew that since most of the class is math majors they would not have been exposed to DFAs or automata before so I made my talk pretty basic
+•Make Copies of Slides used more than once 
+oI only used slides for the title and basic definitions so I did not have to worry about this 
+•Avoid Technical Definitions
+oThe definitions of DFAs are not extremely complicated and I made sure to explain them in a way that would be easy to understand to anyone
+•Use Examples and Non Examples
+oI used examples of basic DFAs and gave examples of finite automata that would not be deterministic, and gave examples of how a DFA might change if the language changed
+•Segment Your Talk 
+oI made sure to have separate examples that I could include or leave out depending on the amount of time I had left
+•Don’t compute in public
+oI made sure to practice and figure out all of my examples beforehand so I wasn’t trying to make a DFA on the spot which can be time consuming
+
+DELIVERY
+•Face the Audience
+oI always face the audience, even if I write something on the board I make sure to turn back around or face sideways while writing
+•Avoid Annoying mannerisms
+oSometimes I tend to talk with my hands too much, so writing on the board or holding the marker can help control that, and practicing it so I am not as nervous also controls the movement a little
+•Don’t use a chalkboard
+oI used the board to illustrate my examples because power points are not as effective for DFAs 
+•Show Enthusiasm
+oThe diagonal slash proof is one of my favorite proofs and I am excited every time I use it so I knew that my talk wouldn’t be lacking energy. I also made sure to use simple examples so I was not focused on the hard problem and I could make sure people are engaged and not lost
+•Say it Loud and Clear
+oI usually talk loud enough and I try to be cognizant of the speed at which I am talking and that I enunciate properly
+
+VISUAL AIDS
+•Avoid Distracting Animations
+oI only used a power point for the title and basic definition of a DFA and did not include any animations
+•Incorporate props
+oI did not use any props because they would not be effective
+•Use appropriate backgrounds
+oI used solid color backgrounds and did not utilize the power point much 
+•Use keywords or phrases
+oI did not put very much information in my power point but I make sure not to put very much information
+•Manage the overhead projector
+oProjectors now do not require as much attention as overheads so I didn’t have to worry about that
+•Use color to enhance the slides
+oI did not have many slides
+•Use a large font size
+oI did not have much information so I made it large enough to fill the page
+
+
+

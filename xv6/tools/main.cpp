@@ -42,6 +42,7 @@ void inodeType(char* fs, uint ninodes){
     for (int i = 1; i < ninodes; i++)
     {
         inode = getinode(fs,i);
+        /*
         cout << "inode "<< inode << endl;
         cout << "inode number " << i << endl;
         cout << "inode type " << inode->type << endl;
@@ -49,6 +50,7 @@ void inodeType(char* fs, uint ninodes){
         cout << "inode address " << inode->addrs << endl;
         cout << "inode address 1 " << inode->addrs[0]  << endl;
         cout << "=============================" << endl;
+        */
         type = inode->type;
         //cout << "here" << inode->type <<endl;
         if (type != T_DIR && type != T_FILE && type !=T_DEV && type != 0)
@@ -82,16 +84,21 @@ void inUseInode(char* fs, struct superblock * sb)
                     exit(1);
                 }
             }
-
-            if (inode->addrs[NDIRECT] > 0)
+            if (inode->size/BSIZE >= NDIRECT)
             {
-                indirect = (uint *)(fs+(BSIZE*2)+(BSIZE*inode->addrs[NDIRECT]));
-                for (int k = 0; k < NINDIRECT; k++)
+                cout << inode->addrs[NDIRECT] <<endl;
+                if (inode->addrs[NDIRECT] > 0)
                 {
-                    if (indirect[k] > sb->size)
+                    indirect = (uint *)(fs+(BSIZE*inode->addrs[NDIRECT]));
+                    cout << indirect << endl;
+                    for (int k = 0; k < NINDIRECT; k++)
                     {
-                        cerr << "ERROR: bad direct address in inode" << endl;
-                        exit(1);
+                        if(indirect[k]==0)break;
+                        if (indirect[k] > sb->size)
+                        {
+                            cerr << "ERROR: bad indirect address in inode" << endl;
+                            exit(1);
+                        }
                     }
                 }
             }
@@ -107,9 +114,10 @@ void rootDir(char* fs, struct superblock * sb){
     int i=0;
     struct dirent * dir;
     root = getinode(fs, 1);
-    cout << ";adkf " << root<< endl;
+    //cout << ";adkf " << root<< endl;
     uint start = root->addrs[0];
-    cout << "Start " << start << endl;/*
+    //cout << "Start " << start << endl;
+    /*
     for (uint x = 0; x<sb->nblocks; x++)
     {
         dir = (struct dirent*)(fs+(start*BSIZE)+sizeof(struct dirent)*x);
@@ -162,23 +170,23 @@ void selfAndParent(char* fs, uint ninodes)
         type = inode->type;
         if (type == T_DIR)
         {
-            cout << "dir " << i << endl;
+            //cout << "dir " << i << endl;
             j = 0;
             found = 0;
             dir = getdir(fs, inode->addrs[0], j);
-            cout << "fj " << dir->name << endl;
+            //cout << "fj " << dir->name << endl;
             while (j <= NDIRECT && found < 2)
             {
-                cout << "blah " << dir->name << endl;
+                //cout << "blah " << dir->name << endl;
                 if (strcmp(dir->name,".")==0 && dir->inum==i)
                 {
-                    cout << "self" << endl;
+                    //cout << "self" << endl;
                     found++;
-                    cout << "found " << found << endl;
+                    //cout << "found " << found << endl;
                 }
                 else if (strcmp(dir->name,"..")==0)
                 {
-                    cout << "parent" << endl;
+                    //cout << "parent" << endl;
                     found++;
                 }
                 j++;
@@ -307,21 +315,26 @@ void usedOnceDirect (char* fs, struct superblock *sb)
     uint addr, notfound;
     short type;
     char used[sb->size];
+    //cout<<"usedOnceDirect" << endl;
     for (int i = 1; i < sb->ninodes; i++)
     {
         inode = getinode(fs, i);
-        type = inode->type;
-        if (type == T_DIR || type == T_FILE || type== T_DEV)
+        if (inode->size > 0)
         {
-            for (int j = 0; j < NDIRECT; j++)
+            type = inode->type;
+            if (type == T_DIR || type == T_FILE || type== T_DEV)
             {
-                if (inode->addrs[j]==0) break;
-                if (used[inode->addrs[j]]=='f')
+                for (int j = 0; j < NDIRECT; j++)
                 {
-                    cerr << "ERROR: direct address used more than once." << endl;
-                    exit(1);
+                    //cout << "========== " << j << " ===========" << endl;
+                    if (inode->addrs[j]==0) break;
+                    if (used[inode->addrs[j]]=='f')
+                    {
+                        cerr << "ERROR: direct address used more than once." << endl;
+                        exit(1);
+                    }
+                    used[inode->addrs[j]] = 'f';
                 }
-                used[inode->addrs[j]] = 'f';
             }
         }
     }
@@ -336,23 +349,27 @@ void usedOnceIndirect(char* fs, struct superblock* sb)
     short type;
     char used[sb->size];
 
+    //cout<< "usedOnceIndirect" << endl;
     for (int i = 1; i < sb->ninodes; i++)
     {
         inode = getinode(fs, i);
-        type = inode->type;
-        if (type == T_DIR || type == T_FILE || type== T_DEV)
+        if (inode->size/BSIZE > NDIRECT && inode->size > 0)
         {
-            indirect = (uint *)(fs+(BSIZE*2)+(BSIZE*inode->addrs[NDIRECT]));
-            for (int j = 0; j < NINDIRECT; j++)
+            cout << "inode size" << inode->size/BSIZE<<endl;
+            type = inode->type;
+            if (type == T_DIR || type == T_FILE || type== T_DEV)
             {
-                cout <<"try "<< inode->addrs[j]<<endl;
-                if (inode->addrs[j]==0) break;
-                if (used[inode->addrs[j]]=='f')
+                indirect = (uint *)(fs+(BSIZE*inode->addrs[NDIRECT]));
+                for (int j = 0; j < NINDIRECT; j++)
                 {
-                    cerr << "ERROR: indirect address used more than once." << endl;
-                    exit(1);
+                    if (indirect[j]==0) break;
+                    if (used[indirect[j]]=='f')
+                    {
+                        cerr << "ERROR: indirect address used more than once." << endl;
+                        exit(1);
+                    }
+                    used[indirect[j]] = 'f';
                 }
-                used[inode->addrs[j]] = 'f';
             }
         }
     }
@@ -404,17 +421,13 @@ void inodeinUse(char* fs, struct superblock * sb)
     for (int i = 0; i < sb->ninodes; i++)
     {
         inode = getinode(fs, i);
-        cout << "trying inode " << i << endl;
         if (inode->type == T_DIR)
         {
             j = 0;
             looking = 1;
             dir = getdir(fs, inode->addrs[0], j);
-            cout << "dir name " << dir->name << endl;
             while (dir->inum!=0 || looking)
             {
-                cout << "j " << j << endl;
-                cout << "dir name " << dir->name << endl;
                 if (dir->inum==i)
                 {
                     alloc = isAllocated(fs, dir->inum, sb->ninodes);
@@ -466,19 +479,20 @@ int main (int argc,char *argv[])
     cout << "inodes " << sb->size << endl;
     cout << "blocks " << sb->nblocks << endl;
     cout << "types " << T_DIR <<" "<<T_FILE <<" "<<T_DEV << endl;
-    //inodeType(fs, sb->ninodes);
-    cout << "finished inode type" << endl;
-    //rootDir(fs, sb);
-    cout << "finished rootdir" << endl;
+    
+    inodeType(fs, sb->ninodes);
+    //cout << "finished inode type" << endl;
+    rootDir(fs, sb);
+    //cout << "finished rootdir" << endl;
     //inBitMap(fs, sb->ninodes);
     //cout << "done " << isAllocated(fs,31,sb->ninodes) << endl;
-    //inUseInode(fs,sb);
-    //selfAndParent(fs,sb->ninodes);
-    //bitmapMarked(fs,sb);
-    //usedOnceDirect(fs, sb);
-    //usedOnceIndirect(fs, sb);
-    //inodeInDirectory(fs, sb);
-    //inodeinUse(fs,sb);
+    inUseInode(fs,sb);
+    selfAndParent(fs,sb->ninodes);
+    bitmapMarked(fs,sb);
+    usedOnceDirect(fs, sb);
+    usedOnceIndirect(fs, sb);
+    inodeInDirectory(fs, sb);
+    inodeinUse(fs,sb);
     if (munmap(fs,size)==-1) cout << "error" << endl;
     closed = close(fd);
     return 0;

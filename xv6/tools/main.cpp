@@ -11,7 +11,6 @@
 #include <iterator>
 #include <map>
 
-//#include "main.h"
 
 #define stat xv6_stat
 #include "../include/stat.h"
@@ -650,7 +649,6 @@ int main (int argc,char *argv[])
     size = st.st_size;
     fs = (char *) (mmap(0,size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0));
     sb = (struct superblock *)(fs + BSIZE);
-
     inodeType(fs, sb); //1
     inUseInode(fs,sb); //2
     rootDir(fs, sb); //3

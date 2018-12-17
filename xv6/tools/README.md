@@ -1,43 +1,87 @@
+# Test files
 
+#### Check 1
 
-| file name  | part it tests  | expected result  | notes | pass? |
-|------------|----------------|------------------|-------|-------|
-| bad_inode_type1.img | 1 | ERROR: bad inode. | Gives an inode an invalid type (one that is not T_DIR, T_FILE, or T_DEV). |yes |
-| bad_inode_type2.img | 1 | ERROR: bad inode. | Gives an inode an invalid type (one that is not T_DIR, T_FILE, or T_DEV). |yes|
-| bad_inode_type3.img | 1 | ERROR: bad inode. | Gives an inode an invalid type (one that is not T_DIR, T_FILE, or T_DEV). |yes|
-| bad_dir_ptr1.img | 2 | ERROR: bad direct address in inode. | Gives an inode a direct address that is too big (outside of the scope of the disk image). |yes|
-| bad_dir_ptr2.img | 2 | ERROR: bad direct address in inode. | Gives an inode a direct address that is too small (below the data blocks). |yes|
-| bad_ind_ptr1.img | 2 | ERROR: bad indirect address in inode. | Gives an inode a pointer to an indirect block that is too big (outside of the scope of the disk image). |no|
-| bad_ind_ptr2.img | 2 | ERROR: bad indirect address in inode. | Gives an inode a pointer to an indirect block that is too small (below the data blocks). | no|
-| bad_ind_ptr3.img | 2 | ERROR: bad indirect address in inode. | Puts an indirect pointer in an indirect pointer block that is too small (below the data blocks). |no|
-| bad_ind_ptr4.img | 2 | ERROR: bad indirect address in inode. | Puts an indirect pointer in an indirect pointer block that is too big (outside of the scope of the disk image). | yes|
-| bad_root1.img | 3 | ERROR: root directory does not exist. | Sets the root inode's type to 0 to mark it unused. |yes|
-| bad_root2.img | 3 | ERROR: root directory does not exist. | Changes the name of the root directory's parent entry. |yes|
-| bad_root3.img | 3 | ERROR: root directory does not exist. | Changes the inode number of the root directory's parent entry. |yes|
-| bad_dir_format1.img | 4 | ERROR: directory not properly formatted. | Sets the data block of a directory to be completely empty. |yes|
-| bad_dir_format2.img | 4 | ERROR: directory not properly formatted. | Associates a directory's . entry with the wrong inode number. |yes|
-| bad_dir_format3.img | 4 | ERROR: directory not properly formatted. |  Removes the . entry from a directory. |yes|
-| bad_dir_format4.img | 4 OR extra credit 1 | ERROR: directory not properly formatted. OR ERROR: parent directory mismatch (if extra credit part 1 has been implemented) | Removes the .. entry from a directory. |yes|
-| bad_inode_addr1.img | 5 | ERROR: address used by inode but marked free in bitmap. | Points a direct address in an inode to an unused block. |yes|
-| bad_inode_addr2.img | 5 | ERROR: address used by inode but marked free in bitmap. | Points an indirect address in an inode to an unused block. |yes|
-| bad_bitmap1.img | 6 | ERROR: bitmap marks block in use but it is not in use. | Removes a direct pointer from an inode but keeps it marked as used in the bitmap. |no|
-| bad_bitmap2.img | 6 | ERROR: bitmap marks block in use but it is not in use. | Removes an indirect pointer from an inode but keeps it marked as used in the bitmap. |no|
-| reused_dir_ptr1.img | 7 | ERROR: direct address used more than once. | Tests a situation where the same inode contains two pointers to the same address. |yes|
-| reused_dir_ptr2.img | 7 | ERROR: direct address used more than once. | Tests a situation where different inodes contain pointers to the same address. |yes|
-| reused_ind_ptr1.img | 8 | ERROR: indirect address used more than once. | Tests a situation where one inode's block of indirect pointers contains the same pointer twice. |yes|
-| reused_ind_ptr2.img | 8 | ERROR: indirect address used more than once. | Tests a situation where different inodes' indirect blocks contain the same pointer. |yes|
-| bad_mark_use1.img | 9 | ERROR: inode marked use but not found in a directory. | Places a new inode that is never referred to in a directory in the lowest-possible free slot in the inode blocks. | no|
-| bad_mark_use2.img | 9 | ERROR: inode marked use but not found in a directory. | Places a new inode that is never referred to in a directory in a higher free slot in the inode blocks.|no|
-| bad_dir_use1.img | 10 | ERROR: inode referred to in directory but marked free. | Places a reference to a non-existent inode in the direct block of a directory. |yes|
-| bad_dir_use2.img | 10 | ERROR: inode referred to in directory but marked free. | Places a reference to a non-existent inode in the indirect block of a directory. |yes|
-| ind_dir1.img | n/a | no error message | Adds an indirect pointer to a directory to check that this doesn't cause any problems. SHOULD PASS WITH NO ERRORS - THIS IS A CONSISTENT FILE SYSTEM. |yes|
-| ind_dir2.img | n/a | no error message | Adds multiple indirect pointers to a directory's indirect block to check that this doesn't cause any problems. SHOULD PASS WITH NO ERRORS - THIS IS A CONSISTENT FILE SYSTEM. |yes|
-| bad_link_count1.img | 11 | ERROR: bad reference count for file. | Sets a regular file's inode link count in its inode struct to fewer than the number of times it is actually referred to. |yes|
-| bad_link_count2.img | 11 | ERROR: bad reference count for file. | Sets a regular file's inode link count in its inode struct to more than the number of times it is actually referred to. |yes|
-| bad_link_count3.img | 11 | ERROR: bad reference count for file. | Adds an extra hard link to a file by adding a directory entry with its inode number without updating its inode struct link count. |yes|
-| link_count_ok1.img | 11 | no error message | Creates a new hard link between two files, but all necessary structures have been updated correctly. SHOULD PASS WITH NO ERRORS - THIS IS A CONSISTENT FILE SYSTEM. |yes|
-| bad_dir_ref1.img | 12 | ERROR: directory appears more than once in file system. | Places multiple entries for the same directory in the direct addressed blocks of its parent. |yes|
-| bad_dir_ref2.img | 12 | ERROR: directory appears more than once in file system. | Places multiple entries for the same directory in the direct addressed blocks of different parent directories. |yes|
-| bad_dir_ref3.img | 12 | ERROR: directory appears more than once in file system. | Places multiple entries for the same directory in the block of indirect addresses for its parent directory. |yes|
-| bad_parent1.img | extra credit 1 | ERROR: parent directory mismatch. | Sets the inode number for the parent directory of a directory to the wrong number. |
-| bad_parent2.img | extra credit 1 | ERROR: parent directory mismatch. | The inode number of a directory's parent is correct, but the parent does not contain an entry for the child.
+- **bad_inode.img** - output =ERROR: bad inode.   
+  An inode is allocated but an invalid type.
+  Inode 16 is of type 5, INVALID.
+
+#### Check 2
+
+- **bad_dir_addr.img** - output = ERROR: bad direct address in inode.   
+  An inode contains a direct address greater than the boundary of the file system image
+
+- **bad_dir_addr2.img** - output = ERROR: bad direct address in inode.    
+  An inode contains a direct address in the inode region of the file system image
+    In the inode at 0x480, inode 2, change the first address to 0x0a(an inode block).
+
+- **bad_indir_addr.img** - output = ERROR: bad indirect address in inode.   
+  An inode contains a direct address outside of the file system image
+  created a file, file3.txt, that is large enough to require indirect address.
+  I then changed the indirect address in the inode, at 0x6c0, to 0xff44.
+
+#### Check 3
+- **bad_root_parent.img** - output = ERROR: root directory does not exist.    
+  root exists but the parent(..) does not point to itself. Changed to point to inode 2
+
+#### Check 4
+- **bad_directory.img** - output = ERROR: directory not properly formatted.   
+  A directory does not include ".".
+  Changing the second directory inode data, at 0x3c00 so that it does not include "." .
+
+- **dir_unorder.img** - output = NOTHING  This is consistent    
+  A directory where "." and ".." are not the first two entries. This test should not cause any error.
+  Changing the data in root directory at 0x3a00.
+
+#### Check 5
+- **bad_bitmap_free.img** - output = ERROR: address used by inode but marked free in bitmap.    
+  An address is in an inode but not in the bitmap. Changed the last 1 bit to a 0 bit in the bitmap.
+
+- **bad_bitmap_free2.img** - output = ERROR: address used by inode but marked free in bitmap.
+  Increase the size of an inode and includes a valid addr
+
+#### Check 6
+- **bad_bitmap_used.img** - output =ERROR: bitmap marks block in use but it is not in use.    
+  A block is marked used in the bitmap but is not used in the File System. add a 1 bit to bitmap
+
+#### Check 7
+- **repeat_dir_addr.img** - output = ERROR: direct address used more than once.   
+  Change the first address of the 4th indode equal to the first address of the root inode.
+
+#### Check 8
+- **repeat_indir_addr.img** - output = ERROR: indirect address used more than once.   
+  Two inodes are using indirect addresses, inode at 0x620 and 0x7c0. I changed the indirect address
+  of the inode at 0x7c0 to be equal to the indirect address of 0x6c0.
+
+#### Check 9
+- **bad_ref_inode2.img** - output = ERROR: inode marked use but not found in a directory.   
+Create an inode that is valid but not in a directory. created an empty file at 0x880.
+
+#### Check 10
+- **check10.img** - output = ERROR: inode referred to in directory but marked free.   
+  added an entry to the root directory pointing to inode 0xaa. inode 0xaa is not in use.
+
+#### Check 11
+- **link_counts.img** - output = ERROR: bad reference count for file.   
+Increased the nlink value in an inode of a file.
+
+- **link_counts1.img** - output = ERROR: bad reference count for file.      
+Decreased the nlink value in an inode of a file.
+
+#### Check 12
+- **dir_links.img** - output = ERROR: directory appears more than once in file system.    
+Make a directory include another directory. Creating a loop in the system.
+
+#### EC 1: Proper Parent
+- **bad_parent1.img** - output = ERROR: parent directory mismatch.    
+Change the ".." entry to point to a different directory.
+
+- **bad_parent2.img** - output = ERROR: parent directory mismatch.    
+Change the parent directory to not include the original directory.
+
+#### EC 2: Trace to root
+- **dir_loop.img** - output = ERROR: inaccessible directory exists.
+set the parent to a subdirectory. set folder1 parent to inner1.
+
+- **isolated_dir.img** - output = ERROR: inaccessible directory exists.
+Change the parent to itself

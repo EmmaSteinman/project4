@@ -36,6 +36,17 @@ struct dirent * getdir(char* fs, uint block, uint ent)
 
 }
 
+uint isAllocated(char* fs, int blocknum, uint ninodes)
+{
+    uint* bitmapArray;
+    uint bit,word,pos, shift;
+    bitmapArray = (uint *) (fs + (BBLOCK(0,ninodes)*BSIZE));
+    word = (uint)(bitmapArray[(blocknum / 32)]); //gets word within BitMap
+    pos = blocknum % 32;
+    word = word >>pos;
+    return (word & 0x1);
+}
+
 uint isDir(char * fs, uint inum)
 {
     struct dinode* inode;
@@ -50,19 +61,10 @@ void inodeType(char* fs, struct superblock * sb){
     for (int i = 0; i < sb->ninodes; i++)
     {
         inode = getinode(fs,i);
-/*
-        cout << "inode number " << i << endl;
-        cout << "inode type " << inode->type << endl;
-        cout << "inode # links " << inode->nlink << endl;
-        cout << "inode address " << inode->addrs << endl;
-        cout << "inode address 1 " << inode->addrs[0]  << endl;
-        cout << "=============================" << endl;
-*/
+
         type = inode->type;
-        //cout << "here" << inode->type <<endl;
         if (type < 0 || type >3)
         {
-            cout << type << endl;
             cerr << "ERROR: bad inode." << endl;
             exit(1);
         }
@@ -78,11 +80,8 @@ void inUseInode(char* fs, struct superblock * sb)
     short type;
     uint daddr,iaddr,ninodes,dbStart, dbEnd;
     ninodes = sb->ninodes;
-    cout << "dkfs" << sb->size << endl;
     dbStart = (sb->ninodes/IPB)+2 + (sb->size/BPB+1);
-    cout << "start " << dbStart << endl;
     dbEnd = sb->size;
-    cout << "end " << dbEnd << endl;
     for (int i = 0; i < ninodes; i++)
     {
         inode = getinode(fs, i);
@@ -91,67 +90,53 @@ void inUseInode(char* fs, struct superblock * sb)
         {
             for (int j = 0; j < NDIRECT; j++)
             {
-                if (inode->addrs[j] >= sb->size)
+                if (inode->addrs[j]==0)break;
+                if (inode->addrs[j] < dbStart || inode->addrs[j]>dbEnd)
                 {
                     cerr << "ERROR: bad direct address in inode" << endl;
                     exit(1);
                 }
             }
-            cout << "this" << inode->size << endl;
-
             if (inode->size/BSIZE >= NDIRECT)
             {
-                cout << "here" << i << endl;
-                if (inode->addrs[NDIRECT] > 0)
+                if (inode->addrs[NDIRECT] < dbStart || inode->addrs[NDIRECT] > dbEnd)
+                {
+                    cerr << "ERROR: bad indirect address in inode" << endl;
+                    exit(1);
+                }
+
+                indirect =  (uint *)(fs+(BSIZE*inode->addrs[NDIRECT]));
+                for (int k = 0; k < NINDIRECT; k++)
                 {
 
-                    indirect = (uint *)(fs+(BSIZE*inode->addrs[NDIRECT]));
-                    for (int k = 0; k < NINDIRECT; k++)
+                    if (indirect[k]==0)break;
+                    if (indirect[k] < dbStart || indirect[k] > dbEnd)
                     {
-                      cout << indirect[k] << endl;
-                        if(indirect[k]==0)break;
-                        if (indirect[k] < dbStart || indirect[k] > dbEnd)
-                        {
-                            cout << indirect[k] << endl;
-                            cerr << "ERROR: bad indirect address in inode" << endl;
-                            exit(1);
-                        }
+                        cerr << "ERROR: bad indirect address in inode" << endl;
+                        exit(1);
                     }
                 }
+
             }
         }
     }
 }
 
 //3
-void rootDir(char* fs, struct superblock * sb){
+void rootDir(char* fs, struct superblock * sb)
+{
     struct dinode * root;
     char* name;
     uint addrs[DIRSIZ];
     int i=0;
     struct dirent * dir;
     root = getinode(fs, 1);
-    //cout << ";adkf " << root<< endl;
     uint start = root->addrs[0];
-    //cout << "Start " << start << endl;
-    /*
-    for (uint x = 0; x<sb->nblocks; x++)
-    {
-        dir = (struct dirent*)(fs+(start*BSIZE)+sizeof(struct dirent)*x);
-        name = dir->name;
-        cout << "block number " << start*BSIZE << endl;
-        cout << "block number+x " << (void*)(fs+start*BSIZE+sizeof(struct dirent)*x) << endl;
-        cout << "dirent " <<  dir<< endl;
-        cout << "dir name " << name << endl;
-        cout << "dir inum " << dir->inum << endl;
-        cout << "======================" << endl;
-    }*/
+
 
     if (root->type == T_DIR)
     {
-        //addrs = root->addrs;
         dir = getdir(fs, start, i);
-        //(struct dirent*)(fs+(start*BSIZE)+sizeof(struct dirent)*i);
         while (strcmp(dir->name, "..")!= 0 && i<=NDIRECT)
         {
             i++;
@@ -186,25 +171,13 @@ void selfAndParent(char* fs, uint ninodes)
         type = inode->type;
         if (type == T_DIR)
         {
-            //cout << "dir " << i << endl;
             j = 0;
             found = 0;
             dir = getdir(fs, inode->addrs[0], j);
-            //cout << "fj " << dir->name << endl;
             while (j <= NDIRECT && found < 2)
             {
-                //cout << "blah " << dir->name << endl;
-                if (strcmp(dir->name,".")==0 && dir->inum==i)
-                {
-                    //cout << "self" << endl;
-                    found++;
-                    //cout << "found " << found << endl;
-                }
-                else if (strcmp(dir->name,"..")==0)
-                {
-                    //cout << "parent" << endl;
-                    found++;
-                }
+                if (strcmp(dir->name,".")==0 && dir->inum==i)found++;
+                else if (strcmp(dir->name,"..")==0) found++;
                 j++;
                 dir = (struct dirent *)(fs+inode->addrs[0]*BSIZE+sizeof(struct dirent)*j);
             }
@@ -217,22 +190,6 @@ void selfAndParent(char* fs, uint ninodes)
 
     }
 
-}
-
-uint isAllocated(char* fs, int blocknum, uint ninodes)
-{
-    uint* bitmapArray;
-    uint bit,word,pos, shift;
-    bitmapArray = (uint *) (fs + (BBLOCK(0,ninodes)*BSIZE));
-    //cout << "blocknum " << blocknum/32 << endl;
-    word = (uint)(bitmapArray[(blocknum / 32)]); //gets word within BitMap
-    //cout << "word " << word << endl;
-    pos = blocknum % 32;
-    //cout << "pos " << pos << endl;
-    //shift = 31 - pos;
-    word = word >>pos;
-    //cout << "word1 " << word << endl;
-    return (word & 0x1);
 }
 
 //5
@@ -280,48 +237,51 @@ void inBitMap(char * fs, uint ninodes)
 //6
 void bitmapMarked(char *fs, struct superblock * sb)
 {
-    uint size,alloc,ninodes,addr,found,x;
+    uint size,alloc,bitmapStart,addr,found,x,bitmap;
     struct dinode * inode;
     short type;
     uint* indirect;
     size = sb->size;
-    ninodes = (sb->ninodes/IPB)+3;
-    for (int i = ninodes; i < size; i++)
+    bitmapStart = (sb->ninodes/IPB)+2;
+    bitmap = sb->size /BPB+2;
+    for (int i = bitmapStart+bitmap; i < size; i++) //boot,super,inode,and bitmap blocks always allocated
     {
-        cout << "no? " << i << endl;
         alloc = isAllocated(fs, i, sb->ninodes);
         if (alloc)
         {
             found = 0;
-            for (int j = 0; j < ninodes; j++)
+            for (int j = 0; j < sb->ninodes; j++)
             {
                 inode = getinode(fs, j);
-                cout << "j " << j << " " << found<< endl;
-                x=0;
-                while (inode->addrs[x]>0 && x < NDIRECT) //check direct
+                if (inode->type > 0 && inode->type <=3)
                 {
-                    cout << inode->addrs[x] <<" "<<i <<endl;
-                    cout << "found " <<found << endl;
-                    if (inode->addrs[x]==i) found = 1;
-                    x++;
-                }
-                if (found < 1 && inode->size>0)      //check indirect
-                {
-                    indirect = (uint *)(fs+(BSIZE*inode->addrs[NDIRECT]));
-                    x=0;
-                    while (indirect[x]>0 && x< NINDIRECT)
+                    x = 0;
+                    while (x < NDIRECT) //check direct
                     {
-                        if (indirect[x]==i) found = 1;
+                        if (inode->addrs[x]==i) found++;
                         x++;
                     }
-                }
+                    if (inode->addrs[NDIRECT]==i)found++;
+                    if (inode->size/BSIZE >= NDIRECT)      //check indirect
+                    {
+                        indirect = (uint *)(fs+(BSIZE*inode->addrs[NDIRECT]));
+                        x=0;
+                        while (indirect[x]>0)
+                        {
+                            if (indirect[x]==i) found++;
+                            x++;
+                        }
+                    }
 
+
+                }
             }
             if (found < 1)
             {
                 cerr << "ERROR: bitmap marks block in use but it is not in use." << endl;
                 exit(1);
             }
+
         }
     }
 }
@@ -337,7 +297,6 @@ void usedOnceDirect (char* fs, struct superblock *sb)
     {
         used[i] = 0;
     }
-    //cout<<"usedOnceDirect" << endl;
     for (int i = 0; i < sb->ninodes; i++)
     {
         inode = getinode(fs, i);
@@ -348,7 +307,6 @@ void usedOnceDirect (char* fs, struct superblock *sb)
             {
                 for (int j = 0; j < NDIRECT; j++)
                 {
-                    //cout << "========== " << j << " ===========" << endl;
                     if (inode->addrs[j]==0) break;
                     if (used[inode->addrs[j]]==1)
                     {
@@ -374,7 +332,6 @@ void usedOnceIndirect(char* fs, struct superblock* sb)
     {
         used[i] = 0;
     }
-    //cout<< "usedOnceIndirect" << endl;
     for (int i = 0; i < sb->ninodes; i++)
     {
         inode = getinode(fs, i);
@@ -399,53 +356,64 @@ void usedOnceIndirect(char* fs, struct superblock* sb)
     }
 }
 
-
 //9
-void inodeInDirectory(char * fs, struct superblock* sb)
+void inodeInDirectory(char*fs, struct superblock * sb)
 {
-    struct dinode * inode;
+    struct dinode* inode;
     struct dinode* inode2;
-    struct dirent* dir;
-    uint notfound,j,k;
-    cout << sb->ninodes << endl;
-    for (int i = 1; i < sb->ninodes; i++)
+    struct dirent * dir;
+    uint k, ref;
+    uint* indirect;
+
+    for (int i = 0; i < sb->ninodes; i++)
     {
         inode = getinode(fs, i);
-        if (inode->type == 0) break;
-        cout << "fdlks" << endl;
-        notfound = 1;
-        j = 1;
-        while (notfound || j < sb->ninodes)
+        ref = 0;
+        if (inode->type > 0)
         {
-            if (i != j)
+            for (int j = 0; j < sb->ninodes; j++)
             {
-                inode2 = getinode(fs, j);
-                if (inode2->type==T_DIR)
+                if (i != j)
                 {
-                    //cout << "2" << endl;
-                    k = 0;
-                    dir = getdir(fs,inode2->addrs[0],k);
-                    while (k < inode2->size/sizeof(struct dirent*)|| notfound) //??rihgt/?
+                    inode2 = getinode(fs, j);
+                    if (isDir(fs, j))
                     {
-                        //cout << "dir " << dir->name << endl;
-                        if (dir->inum==i) notfound = 0;
-                        k++;
-                        dir = getdir(fs,j,k);
+                        k = 0;
+                        dir = getdir(fs, inode2->addrs[0],k);
+                        while (dir->inum > 0)
+                        {
+                            if (dir->inum==i)ref++;
+                            k++;
+                            dir = getdir(fs, inode2->addrs[0],k);
+                        }
                     }
-                    cout << "n " << notfound << endl;
-
+                }
+                //check indirect
+                if (inode2->size/sizeof(struct dirent*) > NDIRECT)
+                {
+                    indirect = (uint *)(fs+(BSIZE*inode->addrs[NDIRECT]));
+                    k = 0;
+                    dir = getdir(fs, indirect[0], k);
+                    while (dir->inum > 0)
+                    {
+                        if (dir->inum==i) ref++;
+                        k++;
+                        dir = getdir(fs, indirect[0],k);
+                    }
                 }
             }
-                j++;
-
-        }
-        if (notfound)
-        {
-            cerr << "ERROR: inode marked use but not found in a directory." << endl;
-            exit(1);
+            if (ref < 1)
+            {
+                cerr << "ERROR: inode marked use but not found in a directory." << endl;
+                exit(1);
+            }
         }
     }
 }
+
+
+
+
 
 //10
 void inodeinUse(char*fs, struct superblock * sb)
@@ -534,9 +502,6 @@ void linkCount(char* fs, struct superblock * sb)
             }
             if (links != inode->nlink)
             {
-                cout << "inode " << i << endl;
-                cout << "links " << links << endl;
-                cout << "inode nlinks " << inode->nlink << endl;
                 cerr << "ERROR: bad reference count for file." << endl;
                 exit(1);
             }
@@ -585,18 +550,14 @@ void noExtraLink(char * fs, struct superblock * sb)
             if (inode->size/sizeof(struct dirent*) > NDIRECT)
             {
                 indirect = (uint *)(fs+(BSIZE*inode->addrs[NDIRECT]));
-                cout << "large " << endl;
                 j = 0;
                 dir = getdir(fs, indirect[0], j);
                 while (dir->inum > 0 && j < inode->size/sizeof(struct dirent*))
                 {
-                    cout << "h " << endl;
                     if (strcmp(dir->name, "..")!=0 && strcmp(dir->name, ".")!=0)
                     {
-                        cout << "i " << endl;
                         if (isDir(fs, dir->inum))
                         {
-                            cout << "j " << endl;
                             if (seen[dir->inum]==1)
                             {
                                 cerr << "ERROR: directory appears more than once in file system." << endl;
@@ -615,19 +576,6 @@ void noExtraLink(char * fs, struct superblock * sb)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 int main (int argc,char *argv[])
 {
     struct superblock *sb;
@@ -638,10 +586,6 @@ int main (int argc,char *argv[])
 	struct stat st;
     size_t size;
     struct dinode * inodes;
-    struct dirent * dataStart;
-    uint numiNodeBlocks, numBitMapBlocks;
-    cout << argv[0] << endl;
-    cout << argv[1] << endl;
     fd = open(argv[1],O_RDWR);
     if (fd == -1)
     {
@@ -649,32 +593,35 @@ int main (int argc,char *argv[])
         return -1;//probably don't do this
     }
     r = fstat(fd, &st);
-    if (r!=0) cout << "bad" << endl;
     size = st.st_size;
-    cout << "size " << size << endl;
     fs = (char *) (mmap(0,size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0));
-    cout << "fs " <<(void*)fs<< endl;
     if (fs==MAP_FAILED)cout << "baddd "<<endl;
     sb = (struct superblock *)(fs + BSIZE);
-    numiNodeBlocks = sb->ninodes /IPB;
-    numBitMapBlocks = sb->size/BPB+1;
-    cout << "size " << numiNodeBlocks << endl;
-    cout << "inodes " << sb->size << endl;
-    cout << "blocks " << sb->nblocks << endl;
-    cout << "types " << T_DIR <<" "<<T_FILE <<" "<<T_DEV << endl;
 
-    //inodeType(fs, sb); //1
-    //inUseInode(fs,sb); //2
-    //rootDir(fs, sb); //3
-    //selfAndParent(fs,sb->ninodes); //4
-    //inBitMap(fs, sb->ninodes); //5
-    //bitmapMarked(fs,sb); //6
-    //usedOnceDirect(fs, sb); //7
-    //usedOnceIndirect(fs, sb); //8
+    inodeType(fs, sb); //1
+    cout << "finished 1" << endl;
+    inUseInode(fs,sb); //2
+    cout << "finished 2" << endl;
+    rootDir(fs, sb); //3
+    cout << "finished 3" << endl;
+    selfAndParent(fs,sb->ninodes); //4
+    cout << "finished 4" << endl;
+    inBitMap(fs, sb->ninodes); //5
+    cout << "finished 5" << endl;
+    bitmapMarked(fs,sb); //6
+    cout << "finished 6" << endl;
+    usedOnceDirect(fs, sb); //7
+    cout << "finished 7" << endl;
+    usedOnceIndirect(fs, sb); //8
+    cout << "finished 8" << endl;
     inodeinUse(fs,sb); //10
-    //inodeInDirectory(fs, sb); //9
-    //linkCount(fs, sb); //11
-    //noExtraLink(fs, sb); //12
+    cout << "finished 9" << endl;
+    inodeInDirectory(fs, sb); //9
+    cout << "finished 10" << endl;
+    linkCount(fs, sb); //11
+    cout << "finished 11" << endl;
+    noExtraLink(fs, sb); //12
+    cout << "finished 12" << endl;
     if (munmap(fs,size)==-1) cout << "error" << endl;
     closed = close(fd);
     return 0;

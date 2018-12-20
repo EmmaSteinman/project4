@@ -1,0 +1,93 @@
+clean base.img Status : FAIL 1 ERROR: bad indirect address in inode
+clean base0.img Status : FAIL 1 ERROR: bad indirect address in inode
+clean bw_dir_unorder.img Status : FAIL 1 ERROR: root directory does not exist
+clean hl_ind_dir1.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+clean hl_link_count_ok1.img Exit 0 : Output: 
+clean ind_dir2.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+clean lan_indir_dir1.img Exit 0 : Output: 
+clean lan_success5.img Exit 0 : Output: 
+clean lan_success_1.img Exit 0 : Output: 
+test01 badinode0_0.img Status : FAIL 1 ERROR: bad inode.
+test01 badinode0_1.img Status : FAIL 1 ERROR: bad inode.
+test01 badinode0_2.img Status : FAIL 1 ERROR: bad inode.
+test01 bw_bad_inode.img Status : FAIL 1 ERROR: bad inode.
+test01 es_test_badinode.img Status : FAIL 1 ERROR: bad inode.
+test01 fed_inode_badtype.img Status : FAIL 1 ERROR: bad inode.
+test01 hl_bad_inode_type1.img Status : FAIL 1 ERROR: bad inode.
+test01 hl_bad_inode_type2.img Status : FAIL 1 ERROR: bad inode.
+test01 hl_bad_inode_type3.img Status : FAIL 1 ERROR: bad inode.
+test02 badaddr0_0.img Status : FAIL 1 ERROR: bad indirect address in inode
+test02 badaddr0_1.img Status : FAIL 1 ERROR: bad direct address in inode
+test02 badaddr0_2.img Status : FAIL 1 ERROR: bad indirect address in inode
+test02 badaddr0_3.img Status : FAIL 1 ERROR: bad indirect address in inode
+test02 badaddr0_4.img Status : FAIL 1 ERROR: bad indirect address in inode
+test02 badaddr0_5.img Status : FAIL 1 ERROR: bad indirect address in inode
+test02 bw_bad_dir_addr.img Status : FAIL 1 ERROR: bad direct address in inode
+test02 bw_bad_dir_addr2.img Status : FAIL 1 ERROR: bad direct address in inode
+test02 bw_bad_indir_addr.img Status : FAIL 1 ERROR: bad indirect address in inode
+test02 es_test_addr_dir.img Status : FAIL 1 ERROR: bad direct address in inode
+test02 es_test_addr_indir.img Status : FAIL 1 ERROR: bad indirect address in inode
+test02 es_test_addr_indir2.img Status : FAIL 1 ERROR: bad indirect address in inode
+test02 fed_inuse_invaliddirect.img Status : FAIL 139 Segmentation fault (core dumped)
+test02 hl_bad_dir_ptr1.img Status : FAIL 1 ERROR: bad direct address in inode
+test02 hl_bad_dir_ptr2.img Status : FAIL 1 ERROR: bad direct address in inode
+test02 hl_bad_ind_ptr1.img Status : FAIL 139 Segmentation fault (core dumped)
+test02 hl_bad_ind_ptr2.img Status : FAIL 139 Segmentation fault (core dumped)
+test02 hl_bad_ind_ptr3.img Status : FAIL 1 ERROR: bad indirect address in inode
+test02 hl_bad_ind_ptr4.img Status : FAIL 1 ERROR: bad indirect address in inode
+test03 bad_root1.img Status : FAIL 1 ERROR: root directory does not exist
+test03 bad_root2.img Status : FAIL 1 ERROR: root directory does not exist
+test03 bad_root3.img Status : FAIL 1 ERROR: root directory does not exist
+test03 bw_bad_root_parent.img Status : FAIL 1 ERROR: root directory does not exist
+test03 es_test_badroot.img Status : FAIL 1 ERROR: root directory does not exist
+test03 fed_dir_rootwrong.img Status : FAIL 1 ERROR: root directory does not exist
+test03 lan_error3.img Status : FAIL 1 ERROR: root directory does not exist
+test04 bw_bad_directory.img Status : FAIL 1 ERROR: directory not properly formatted
+test04 es_test_baddir.img Status : FAIL 1 ERROR: directory not properly formatted
+test04 fed_dir_dotentry.img Status : FAIL 1 ERROR: directory not properly formatted
+test04 hl_bad_dir_format1.img Status : FAIL 1 ERROR: directory not properly formatted
+test04 hl_bad_dir_format2.img Status : FAIL 1 ERROR: directory not properly formatted
+test04 hl_bad_dir_format3.img Status : FAIL 1 ERROR: directory not properly formatted
+test05 bad_inode_addr1.img Status : FAIL 1 ERROR: address used by inode but marked free in bitmap.
+test05 bad_inode_addr2.img Status : FAIL 1 ERROR: address used by inode but marked free in bitmap.
+test05 bw_bad_bitmap_free.img Status : FAIL 1 ERROR: address used by inode but marked free in bitmap.
+test05 bw_bad_bitmap_free2.img Status : FAIL 1 ERROR: address used by inode but marked free in bitmap.
+test05 es_test_badbitmap.img Status : FAIL 1 ERROR: address used by inode but marked free in bitmap.
+test05 lan_error5_1.img Status : FAIL 1 ERROR: address used by inode but marked free in bitmap.
+test05 lan_error5_2.img Status : FAIL 1 ERROR: address used by inode but marked free in bitmap.
+test06 bad_bitmap1.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+test06 bad_bitmap2.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+test06 bw_bad_bitmap_used.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+test06 es_test_extrabitmap.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+test06 lan_error6_1.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+test06 lan_error_6.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+test07 bw_repeat_dir_addr.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+test07 es_test_twicedir.img Status : FAIL 1 ERROR: address used by inode but marked free in bitmap.
+test07 lan_error7.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+test07 reused_dir_ptr1.img Status : FAIL 1 ERROR: direct address used more than once.
+test07 reused_dir_ptr2.img Status : FAIL 1 ERROR: direct address used more than once.
+test08 bw_repeat_indir_addr.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+test08 reused_ind_ptr1.img Status : FAIL 1 ERROR: indirect address used more than once.
+test08 reused_ind_ptr2.img Status : FAIL 1 ERROR: indirect address used more than once.
+test09 bad_mark_use1.img Status : FAIL 1 ERROR: inode marked use but not found in a directory.
+test09 bad_mark_use2.img Status : FAIL 1 ERROR: inode marked use but not found in a directory.
+test09 bw_bad_ref_inode2.img Status : FAIL 1 ERROR: inode marked use but not found in a directory.
+test09 es_test_inodenotfound.img Status : FAIL 1 ERROR: inode marked use but not found in a directory.
+test09 lan_error9.img Status : FAIL 1 ERROR: directory not properly formatted
+test10 bad_dir_use1.img Status : FAIL 1 ERROR: inode referred to in directory but marked free.
+test10 bad_dir_use2.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+test10 bw_check10.img Status : FAIL 1 ERROR: inode referred to in directory but marked free.
+test10 lan_error10.img Status : FAIL 1 ERROR: bitmap marks block in use but it is not in use.
+test11 bw_link_counts.img Status : FAIL 1 ERROR: bad reference count for file.
+test11 bw_link_counts1.img Status : FAIL 1 ERROR: bad reference count for file.
+test12 bad_dir_ref1.img Status : FAIL 1 ERROR: directory appears more than once in file system.
+test12 bad_dir_ref2.img Status : FAIL 1 ERROR: directory appears more than once in file system.
+test12 bad_dir_ref3.img Status : FAIL 1 ERROR: address used by inode but marked free in bitmap.
+test12 bw_dir_links.img Status : FAIL 1 ERROR: directory appears more than once in file system.
+test12 es_test_bad_dir_ref.img Status : FAIL 1 ERROR: directory appears more than once in file system.
+testEC1 bw_bad_parent1.img Exit 0 : Output: 
+testEC1 bw_bad_parent2.img Status : FAIL 1 ERROR: inode marked use but not found in a directory.
+testEC1 hl_bad_parent1.img Exit 0 : Output: 
+testEC1 hl_bad_parent2.img Status : FAIL 1 ERROR: inode marked use but not found in a directory.
+testEC2 dir_loop.img Exit 0 : Output: 
+testEC2 isolated_dir.img Exit 0 : Output: 
